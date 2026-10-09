@@ -55,6 +55,10 @@ const messageSchema = mongoose.Schema({
         enum: ['student', 'admin'],
         required: true
     },
+    senderRole: {
+        type: String,
+        enum: ['student','admin','staff']
+    },
     senderName: {
         type: String
     },
@@ -121,6 +125,11 @@ const complaintSchema  = mongoose.Schema({
     notes:{
         type:[noteSchema],
         default:[]
+    },
+    lastViewed:{
+        student: { type: Date, default: null },
+        admin: { type: Date, default: null },
+        staff: { type: Date, default: null }
     }
 },{
     timestamps:true

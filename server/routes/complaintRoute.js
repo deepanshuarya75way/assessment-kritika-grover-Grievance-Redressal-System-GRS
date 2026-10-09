@@ -372,11 +372,12 @@ router.post('/:id/messages', authMiddleware, upload.single('attachment'), async 
 
         complaint.messages.push({
             sender: sender.role === 'staff' ? 'admin' : sender.role,
+            senderRole: sender.role,
             senderName: sender.name,
             text: text && text.trim() ? text.trim() : undefined,
             attachment: hasFile ? toAttachment(req.file) : undefined
         })
-
+        complaint.set("lastViewed.$(sender.role", new Date())
         await complaint.save()
         await complaint.populate({
             path: 'studentId',
@@ -399,4 +400,24 @@ router.post('/:id/messages', authMiddleware, upload.single('attachment'), async 
     }
 })
 
+router.put('/:id/mark-read', authMiddleware, async (req, res)=>{
+    try{
+        const complaint=await Complaint.findById(req.params.id).select('studentId assignedStaffId')
+        if(!complaint) return res.status(404).json({message: 'Not found the complaint'})
+
+        const viewer= await resolveSender(req.user.id)
+        if(!viewer) return res.status(403).json({message: 'Not authorized to access this'})
+        if(viewer.role==='student' && complaint.studentId.toString()!==req.user.id)
+                return res.status(403).json({message: "this complaint is not assigned to you"})
+        const updated= await Complaint.findByIdAndUpdate(
+            req.params.id,
+            { $set: {['lastViewed.'+ viewer.role]:new Date()}},
+            { returnDocument:'after', timestamps:false}
+        ).select('lastViewed')
+        res.status(200).json({lastViewed:updated.lastViewed});
+    }catch(error){
+        console.error(error)
+            res.status(500).json({message: 'Internal server error'})
+    }
+})
 module.exports = router

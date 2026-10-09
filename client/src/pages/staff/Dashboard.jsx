@@ -4,6 +4,8 @@ import api from '../../services/api';
 import { FaListAlt, FaCheckCircle, FaExclamationCircle, FaClipboardList, FaSearch, FaEye, FaEnvelope, FaPhone, FaUniversity, FaBook, FaTag, FaCalendarAlt, FaHistory, FaExchangeAlt, FaCommentAlt, FaStickyNote, FaFireAlt, FaPaperclip } from 'react-icons/fa';
 import Modal from '../../components/Modal';
 import MessageThread from '../../components/MessageThread';
+import NewMessageDot from '../../components/NewMessageDot.';
+import { hasNewMessage } from '../../utils/newMessages';
 import AttachmentChip from '../../components/AttachmentChip';
 import { isEscalated, getStatusSince, getDaysSince, ESCALATION_DAYS } from '../../utils/escalation';
 
@@ -13,6 +15,7 @@ import { isEscalated, getStatusSince, getDaysSince, ESCALATION_DAYS } from '../.
 // client-side filtering standing between staff and other departments'
 // complaints), and there's no reassignment or note-deletion here, since
 // those stay admin-only actions.
+
 const StaffDashboard = () => {
     const { user } = useAuth();
     const [complaints, setComplaints] = useState([]);
@@ -20,6 +23,17 @@ const StaffDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedComplaint, setSelectedComplaint] = useState(null);
+
+    useEffect(() => {
+        const id= selectedComplaint?._id;
+        if (!id) return;
+        api.put('/complaint/' + id + '/mark-read')
+        .then((res)=>{
+            setComplaints((prev) => prev.map((c) => (c._id)=== id ?{ ...c, lastViewed:res.data.lastViewed}:c)); 
+        })
+        .catch(()=>{});
+    },[selectedComplaint?._id]);
+
     const [noteDraft, setNoteDraft] = useState('');
     const [savingNote, setSavingNote] = useState(false);
     const [sendingMessage, setSendingMessage] = useState(false);
@@ -222,6 +236,7 @@ const StaffDashboard = () => {
                                                     <FaFireAlt size={10} /> ESCALATED
                                                 </span>
                                             )}
+                                            {hasNewMessage(c,'staff')&& <NewMessageDot/>}
                                         </div>
                                     </td>
                                     <td style={{ padding: '1rem 1.5rem' }}>

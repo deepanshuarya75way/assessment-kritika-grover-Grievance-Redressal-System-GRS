@@ -5,6 +5,8 @@ import { FaListAlt, FaUsers, FaCheckCircle, FaExclamationCircle, FaUserShield, F
 import { Link, useSearchParams } from 'react-router-dom';
 import Modal from '../../components/Modal';
 import MessageThread from '../../components/MessageThread';
+import NewMessageDot from '../../components/NewMessageDot.';
+import { hasNewMessage } from '../../utils/newMessages';
 import AttachmentChip from '../../components/AttachmentChip';
 import { isEscalated, getStatusSince, getDaysSince, ESCALATION_DAYS } from '../../utils/escalation';
 
@@ -19,6 +21,17 @@ const AdminDashboard = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedComplaint, setSelectedComplaint] = useState(null);
+
+    useEffect(() => {
+        const id= selectedComplaint?._id;
+        if (!id) return;
+        api.put('/complaint/' + id + '/mark-read')
+        .then((res)=>{
+            setComplaints((prev) => prev.map((c) => (c._id)=== id ?{ ...c, lastViewed:res.data.lastViewed}:c)); 
+        })
+        .catch(()=>{});
+    },[selectedComplaint?._id]);
+
     const [noteDraft, setNoteDraft] = useState('');
     const [savingNote, setSavingNote] = useState(false);
     const [assignStaffId, setAssignStaffId] = useState('');
@@ -371,9 +384,10 @@ const AdminDashboard = () => {
                                                 >
                                                     <FaEye size={13} />
                                                 </button>
+                                                {hasNewMessage(c,'admin')&& <NewMessageDot/>}
                                             </div>
                                         </td>
-                                        <td style={{ padding: '1rem 1.5rem' }}>
+                                        <td style={{ padding:'1rem 1.5rem' }}>
                                             {c.assignedTo ? (
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                                     <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', width: 'fit-content' }}>

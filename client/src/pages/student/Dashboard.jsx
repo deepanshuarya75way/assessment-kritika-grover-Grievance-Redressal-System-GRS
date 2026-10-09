@@ -5,6 +5,8 @@ import api from '../../services/api';
 import { FaListAlt, FaPlusCircle, FaClock, FaCheckCircle, FaExclamationCircle, FaEye, FaPaperclip, FaCalendarAlt, FaTag } from 'react-icons/fa';
 import Modal from '../../components/Modal';
 import MessageThread from '../../components/MessageThread';
+import NewMessageDot from '../../components/NewMessageDot.';
+import { hasNewMessage } from '../../utils/newMessages';
 import AttachmentChip from '../../components/AttachmentChip';
 
 const Dashboard = () => {
@@ -16,6 +18,15 @@ const Dashboard = () => {
     const [sendingMessage, setSendingMessage] = useState(false);
 
     useEffect(() => {
+        const id= selectedComplaint?._id;
+        if (!id) return;
+        api.put('/complaint/' + id + '/mark-read')
+        .then((res)=>{
+            setComplaints((prev) => prev.map((c) => (c._id)=== id ?{ ...c, lastViewed:res.data.lastViewed}:c)); 
+        })
+        .catch(()=>{});
+    },[selectedComplaint?._id]);
+     useEffect(()=>{
         const fetchComplaints = async () => {
             try {
                 const response = await api.get('/complaint/student-complaints');
