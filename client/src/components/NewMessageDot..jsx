@@ -11,9 +11,9 @@ export default function NewMessageDot(){
       display:"inline-block",
       backgroundColor:"red",
       color:"white",
-      padding:"6px 12px",
+      padding:"2px 8px",
       borderRadius:"6px",
-      fontSize:"14px",
+      fontSize:"11px",
       fontWeight:"bold"
     }}
     >
